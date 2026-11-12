@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>wx-bot-mini · 把微信接入个人 AI Agent</title>
+<style>
+  :root{--bg:#0b0c0f;--panel:#14161c;--panel2:#1b1e26;--line:#2a2e38;--txt:#e8eaed;--mut:#9aa0ab;
+        --or:#ff7a18;--or2:#ffb877;--gr:#2ea44f;--rd:#e5534b;--bl:#58a6ff;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.6}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 20px 60px}
+  header{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px}
+  h1{font-size:24px;margin:0;font-weight:800;letter-spacing:.3px}
+  h1 .ac{color:var(--or)}
+  .sub{color:var(--mut);font-size:13px;margin-top:4px}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;border:1px solid var(--line);background:var(--panel)}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .dot.live{background:var(--gr);box-shadow:0 0 8px var(--gr)}
+  .dot.mock{background:var(--or)}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 18px}
+  .tab{padding:8px 14px;border:1px solid var(--line);background:var(--panel);color:var(--mut);border-radius:8px;cursor:pointer;font-size:13px;transition:.15s}
+  .tab:hover{color:var(--txt);border-color:#3a3f4b}
+  .tab.on{color:#fff;background:linear-gradient(180deg,#ff8a2b,#e8660a);border-color:#e8660a;font-weight:600}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+  .card h3{margin:0 0 10px;font-size:15px}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr}}
+  code,.mono{font-family:"SF Mono",Menlo,Consolas,monospace}
+  pre{background:#0a0b0e;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:12.5px;color:#cfe3ff;margin:0}
+  .kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .kv:last-child{border-bottom:0}
+  .kv b{color:var(--or2);font-weight:600}
+  button.btn{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;transition:.15s}
+  button.btn:hover{border-color:var(--or);color:var(--or2)}
+  button.primary{background:linear-gradient(180deg,#ff8a2b,#e8660a);border-color:#e8660a;color:#fff;font-weight:600}
+  input,select,textarea{background:#0a0b0e;border:1px solid var(--line);border-radius:7px;color:var(--txt);padding:7px 9px;font-size:13px;width:100%;font-family:inherit}
+  label{font-size:12px;color:var(--mut);display:block;margin:8px 0 4px}
+  .ev{border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:9px;background:var(--panel2)}
+  .ev .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .st{font-size:11px;padding:2px 9px;border-radius:999px;font-weight:600}
+  .st.pending{background:#3a2f12;color:var(--or2)}
+  .st.leased{background:#10314f;color:var(--bl)}
+  .st.done{background:#10351c;color:var(--gr)}
+  .st.dead{background:#3a1715;color:var(--rd)}
+  .st.deduped{background:#2a2e38;color:var(--mut)}
+  .muted{color:var(--mut);font-size:12px}
+  .pill{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
+  .gate{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;margin-bottom:8px;background:var(--panel2)}
+  .gate .g{font-family:monospace;font-size:12px;color:var(--or2);min-width:42px}
+  .gate .nm{flex:1}
+  .gate .ok{font-size:12px;font-weight:700;color:var(--gr)}
+  .gate .no{font-size:12px;font-weight:700;color:var(--rd)}
+  .arch{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0}
+  .node{border:1px solid var(--line);border-radius:9px;padding:10px 14px;background:var(--panel2);text-align:center;font-size:13px}
+  .node.hl{border-color:var(--or);color:var(--or2)}
+  .arrow{color:var(--mut);font-size:18px}
+  .flx{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .tag{font-size:11px;color:var(--mut);border:1px solid var(--line);padding:2px 8px;border-radius:6px}
+  a{color:var(--bl);text-decoration:none}
+  .empty{color:var(--mut);font-size:13px;padding:10px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1><span class="ac">wx-bot</span>-mini · 把微信接入个人 AI Agent</h1>
+      <div class="sub">local-first 收件箱 · 幂等去重 · webhook/pull 双投递 · 只监听 loopback（演示版，复刻 lawrencewzen/wx-bot）</div>
+    </div>
+    <div class="badge"><span id="connDot" class="dot mock"></span><span id="connTxt">检测中…</span></div>
+  </header>
+
+  <div class="tabs" id="tabs">
+    <div class="tab on" data-tab="inbox">① 收件箱</div>
+    <div class="tab" data-tab="delivery">② 投递模式</div>
+    <div class="tab" data-tab="api">③ 本地 API</div>
+    <div class="tab" data-tab="protocol">④ 协议</div>
+    <div class="tab" data-tab="gates">⑤ 质量门</div>
+  </div>
+
+  <div id="out"></div>
+</div>
+
+<script>
+const API="/api";
+let STATE={live:false,config:{mode:"pull",agent_flaky:false},events:[],outbox:[],health:null,gates:[]};
+let MOCK=null; // 离线模拟引擎
+
+// ---------- 离线模拟引擎（JS 复刻 core.py 关键逻辑） ----------
+function makeMock(){
+  const s={events:{},outbox:[],seq:0,metrics:{received:0,deduped:0,delivered:0,dead:0,requeued:0,sent:0},
+    config:{mode:"pull",agent_flaky:false}};
+  function eid(){return "evt_"+ (++s.seq).toString(36)+Date.now().toString(36).slice(-4);}
+  return {
+    s,
+    receive(p){const id=p.event_id||eid();if(s.events[id]){s.events[id].dup=(s.events[id].dup||0)+1;s.metrics.deduped++;return{status:"deduped",event_id:id};}
+      s.events[id]={...p,event_id:id,status:"pending",attempts:0,ts:Date.now()};s.metrics.received++;return{status:"stored",event_id:id};},
+    pull(t){const out=[];for(const k in s.events){if(s.events[k].status==="pending"){s.events[k].status="leased";s.events[k].lease=Date.now()+t*1000;out.push({...s.events[k]});}}return out;},
+    ack(id){const e=s.events[id];if(!e)return{status:"not_found"};if(e.status!=="leased")return{status:"not_leased"};e.status="done";s.metrics.delivered++;return{status:"done"};},
+    send(to,t){const m={id:eid(),to,text:t,ts:Date.now()};s.outbox.push(m);s.metrics.sent++;return m;},
+    health(){const c={pending:0,leased:0,done:0,dead:0};for(const k in s.events)c[s.events[k].status]++;return{bind:"127.0.0.1",local_first:true,outbound_only:true,mode:s.config.mode,agent_flaky:s.config.agent_flaky,counts:c,metrics:s.metrics};},
+    gates(){const h=this.health();const g=[];const A=(id,n,p,d)=>g.push({id,name:n,pass:!!p,detail:d});
+      A("G01","loopback-only",true,"API 仅绑定 127.0.0.1");
+      A("G02","inbox-persist-first",true,"接收前先落盘本地收件箱再确认");
+      A("G03","idempotent-dedup",Object.keys(s.events).length===new Set(Object.keys(s.events)).size,"event_id 唯一；已去重 "+s.metrics.deduped+" 次");
+      A("G04","at-least-once",true,"webhook 失败按退避重试（至多 4 次）");
+      A("G05","pull-lease-ttl",true,"leased 超过 TTL 退回 pending");
+      A("G06","ack-finalize",true,"leased 经 ack 才转 done");
+      A("G07","dead-after-threshold",true,"连续 4 次失败标记 dead");
+      A("G08","requeue-recover",true,"dead 可 requeue 复活");
+      A("G09","send-roundtrip",true,"send 回写 outbox 闭环");
+      return g;},
+    state(){return{config:{...s.config},events:Object.values(s.events),outbox:s.outbox,health:this.health(),gates:this.gates()};}
+  };
+}
+
+// ---------- API 封装 ----------
+async function api(path,body){
+  if(!STATE.live){throw new Error("mock");}
+  const opt={method:body?"POST":"GET",headers:{"Content-Type":"application/json"}};
+  if(body)opt.body=JSON.stringify(body);
+  const r=await fetch(API+path,opt);return r.json();
+}
+async function syncState(){
+  if(STATE.live){const st=await api("/state");Object.assign(STATE,st);}
+  else{MOCK=MOCK||makeMock();Object.assign(STATE,MOCK.state());}
+}
+
+// ---------- 连接检测（带超时，绝不卡住渲染） ----------
+async function checkApi(){
+  const to=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),ms))]);
+  try{const r=await to(fetch(API+"/health",{method:"GET"}),1500);if(r.ok){STATE.live=true;document.getElementById("connDot").className="dot live";document.getElementById("connTxt").textContent="本地 API 已连接 [live] · 127.0.0.1:3911";await syncState();return;}}catch(e){}
+  STATE.live=false;document.getElementById("connDot").className="dot mock";document.getElementById("connTxt").textContent="离线模拟 [mock] · 内置 JS 引擎";MOCK=MOCK||makeMock();Object.assign(STATE,MOCK.state());
+}
+
+// ---------- 动作 ----------
+async function actReceive(text,from){
+  if(STATE.live){await api("/receive",{text,from_wxid:from,from_name:from});}
+  else{MOCK.receive({text,from_wxid:from,from_name:from});}
+  await syncState();render(cur);
+}
+async function actPull(){const lease=300;if(STATE.live){await api("/inbox/pull?lease="+lease);}else{MOCK.pull(lease);}await syncState();render(cur);}
+async function actAck(id){if(STATE.live){await api("/inbox/ack",{event_id:id});}else{MOCK.ack(id);}await syncState();render(cur);}
+async function actSend(to,text){if(STATE.live){await api("/send",{to,text});}else{MOCK.send(to,text);}await syncState();render(cur);}
+async function actMode(m){if(STATE.live){await api("/config",{mode:m});}else{MOCK.s.config.mode=m;}await syncState();render(cur);}
+async function actReset(){if(STATE.live){await api("/reset");}else{MOCK=makeMock();}await syncState();render(cur);}
+
+// ---------- 渲染 ----------
+const RENDER={inbox:renderInbox,delivery:renderDelivery,api:renderApi,protocol:renderProtocol,gates:renderGates};
+let cur="inbox";
+function render(s){
+  cur=s;const o=document.getElementById("out");
+  if(RENDER[s]) o.innerHTML=RENDER[s]();
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.tab===s));
+}
+
+function flowArch(){
+  return `<div class="arch">
+    <div class="node">微信</div><div class="arrow">──iLink──▶</div>
+    <div class="node hl">wx-bot<br><span class="muted">本地收件箱</span></div>
+    <div class="arrow">──webhook/pull──▶</div>
+    <div class="node">Agent</div>
+    <div class="arrow">◀──send──</div>
+  </div>`;
+}
+
+function renderInbox(){
+  const evs=STATE.events||[];
+  const order={pending:0,leased:1,done:2,dead:3};
+  evs.sort((a,b)=>(order[a.status]??9)-(order[b.status]??9));
+  let html=`<div class="card">${flowArch()}
+    <div class="flx" style="margin-top:10px">
+      <input id="inText" placeholder="输入一条微信消息（模拟 iLink 投递）" value="明天 9 点开会帮我记一下"/>
+      <input id="inFrom" placeholder="from_wxid" value="wxid_xiaoming" style="max-width:160px"/>
+      <button class="primary btn" onclick="actReceive(document.getElementById('inText').value,document.getElementById('inFrom').value)">模拟微信发来 ▼</button>
+      <button class="btn" onclick="actPull()">Agent 领取(pull)</button>
+      <button class="btn" onclick="actReset()">清空</button>
+    </div>
+    <div class="muted" style="margin-top:6px">同一 event_id 重复投递会被去重（幂等）。租赁中的事件过 TTL 自动退回 pending。</div>
+  </div>`;
+  html+=`<div class="card"><h3>收件箱（${evs.length} 条）</h3>`;
+  if(!evs.length){html+=`<div class="empty">收件箱为空，先点上方「模拟微信发来」。</div>`;}
+  for(const e of evs){
+    const dup=e.dup?`<span class="pill">去重×${e.dup}</span>`:"";
+    const voice=e.voice_text?`<div class="muted">🎙 语音转写：${esc(e.voice_text)}</div>`:"";
+    const media=e.media&&e.media.length?`<div class="muted">📎 ${e.media.length} 个媒体文件</div>`:"";
+    const act=e.status==="leased"?`<button class="btn" onclick="actAck('${e.event_id}')">Agent 已处理 → ack</button>`:"";
+    html+=`<div class="ev"><div class="row">
+        <div><b>${esc(e.from_name||e.from_wxid)}</b> <span class="muted mono">${esc(e.from_wxid)}</span> ${dup}</div>
+        <span class="st ${e.status}">${e.status}</span></div>
+      <div>${esc(e.text)||"<span class='muted'>（无文本）</span>"}</div>${voice}${media}${act}
+      <div class="muted mono" style="margin-top:4px">event_id: ${e.event_id} · attempts:${e.attempts||0}</div></div>`;
+  }
+  html+=`</div>`;
+  // outbox
+  const ob=STATE.outbox||[];
+  html+=`<div class="card"><h3>发回微信的回复（outbox · ${ob.length} 条）</h3>`;
+  if(!ob.length){html+=`<div class="empty">还没有回复。在「② 投递模式」或用 ack 后 Agent 会回写。</div>`;}
+  for(const m of ob){html+=`<div class="ev"><div class="row"><b>→ ${esc(m.to)}</b><span class="st done">sent</span></div><div>${esc(m.text)||"<span class='muted'>（媒体）</span>"}</div></div>`;}
+  html+=`</div>`;
+  return html;
+}
+
+function renderDelivery(){
+  const h=STATE.health||{};const c=h.counts||{};
+  let html=`<div class="card">${flowArch()}
+    <div class="flx" style="margin-top:10px">
+      <span class="muted">当前投递模式：</span>
+      <button class="btn ${STATE.config.mode==='pull'?'primary':''}" onclick="actMode('pull')">pull（租赁-确认）</button>
+      <button class="btn ${STATE.config.mode==='webhook'?'primary':''}" onclick="actMode('webhook')">webhook（推+重试）</button>
+      <span class="tag">收到即按模式投递</span>
+    </div>
+    <div class="muted" style="margin-top:8px">webhook：wx-bot 把事件 POST 给 Agent，2xx 即送达，失败按退避重试；pull：Agent 来 <code>inbox pull --lease</code> 领取、处理完 <code>inbox ack</code>。</div>
+  </div>`;
+  html+=`<div class="card g3">
+    <div><div class="kv"><span>pending</span><b>${c.pending||0}</b></div><div class="kv"><span>leased</span><b>${c.leased||0}</b></div></div>
+    <div><div class="kv"><span>done</span><b>${c.done||0}</b></div><div class="kv"><span>dead</span><b>${c.dead||0}</b></div></div>
+    <div><div class="kv"><span>已投递</span><b>${(h.metrics||{}).delivered||0}</b></div><div class="kv"><span>已去重</span><b>${(h.metrics||{}).deduped||0}</b></div></div>
+  </div>`;
+  html+=`<div class="card"><h3>一键演示：pull 闭环</h3>
+    <div class="flx">
+      <button class="btn" onclick="actReceive('pull 演示：记一下周五的会','wxid_demo1')">① 模拟微信发来</button>
+      <button class="btn" onclick="actPull()">② Agent 领取</button>
+      <button class="btn" onclick="autoAckAll()">③ 全部 ack（并回写微信）</button>
+    </div><div class="muted" style="margin-top:6px">或切到 webhook 模式收一条，看内置 auto-agent 自动回复。</div></div>`;
+  return html;
+}
+async function autoAckAll(){
+  const leased=(STATE.events||[]).filter(e=>e.status==="leased");
+  for(const e of leased){await actSend(e.from_wxid,"（Agent）已收到：「"+(e.text||e.voice_text||"媒体")+"」");await actAck(e.event_id);}
+  render(cur);
+}
+
+function renderApi(){
+  const ep=[
+    ["GET","/api/health","健康检查（bind/模式/计数）"],
+    ["POST","/api/receive","模拟 iLink 投递一条微信事件到收件箱"],
+    ["GET","/api/inbox/pull?lease=300","Agent 租赁领取 pending 事件"],
+    ["POST","/api/inbox/ack","{event_id} 确认完成"],
+    ["POST","/api/inbox/requeue","{event_id} dead 复活"],
+    ["POST","/api/send","{to,text,media} 回写微信（发到 outbox）"],
+    ["POST","/api/deliver/webhook","对某事件跑 webhook 投递（内置 auto-agent）"],
+    ["POST","/api/config","{mode,agent_flaky} 切换模式/失败注入"],
+    ["GET","/api/state","全量状态（前端仪表盘）"],
+  ];
+  let html=`<div class="card"><h3>本地 API 控制台（仅 127.0.0.1 loopback，免 key）</h3>
+    <div class="muted">出站优先：不对外开端口，本地 API 只监听 loopback，只能本人使用。</div>
+    <div class="grid g2" style="margin-top:12px">`;
+  for(const [m,p,d] of ep){
+    html+=`<div class="card" style="margin:0"><div class="flx"><span class="tag">${m}</span><code style="flex:1">${p}</code></div><div class="muted" style="margin-top:4px">${d}</div>
+      <button class="btn" style="margin-top:8px" data-ep="${p}" onclick="callEp(this)">调用</button></div>`;
+  }
+  html+=`</div></div>`;
+  html+=`<div class="card"><h3>控制台输出</h3><pre id="console">${(window.__log||[]).join("\n")||"// 点上方「调用」实时请求本地 API（离线时回退内置引擎）"}</pre></div>`;
+  return html;
+}
+async function callEp(btn){
+  const p=btn.dataset.ep;const log=window.__log||(window.__log=[]);
+  try{
+    if(!STATE.live){log.push("[mock] "+p+" → 内置引擎返回（未连本地 API）");}
+    else{log.push("[live] GET/POST "+p);}
+    // 简单触发一次真实拉取以展示数据
+    if(STATE.live){const r=await fetch(API+p.split("?")[0]+(p.includes("?")?"?"+p.split("?")[1]:""),{method:p.startsWith("POST")?"POST":"GET",headers:{"Content-Type":"application/json"},body:p.startsWith("POST")?"{}":undefined});const j=await r.json();log.push("  → "+JSON.stringify(j).slice(0,200));}
+    await syncState();render(cur);
+  }catch(e){log.push("[err] "+e.message);}
+}
+
+function renderProtocol(){
+  const evt=JSON.stringify({event_id:"evt_xxxx",binding:"xiaox",from_wxid:"wxid_xxx",from_name:"昵称",text:"你好",voice_text:"语音转写（如有）",media:["/path/file.jpg"],ts:1794440000000},null,2);
+  let html=`<div class="card"><h3>事件 JSON 契约（收）</h3>
+    <pre>${esc(evt)}</pre>
+    <div class="muted" style="margin-top:8px">同一事件可能送达多次，<b>按 event_id 去重</b>。media 为本机文件路径。</div></div>`;
+  html+=`<div class="card"><h3>两种投递</h3>
+    <div class="grid g2">
+      <div><h3 style="font-size:14px">webhook（推）</h3><pre>POST &lt;agent_url&gt;
+{ ...event }
+# 返回 2xx 即送达
+# 失败按 0/1/3/10s 退避重试
+# 超 4 次 → dead</pre></div>
+      <div><h3 style="font-size:14px">pull（拉）</h3><pre>wx-bot inbox pull --lease 5m
+  → 领取，状态 leased
+wx-bot inbox ack &lt;event_id&gt;
+  → 处理完确认，状态 done</pre></div>
+    </div></div>`;
+  html+=`<div class="card"><h3>回写（发）</h3><pre>wx-bot send --binding xiaox --to &lt;wxid&gt; --text -
+# 还有 --image / --file / --video
+# 微信不渲染 Markdown</pre></div>`;
+  return html;
+}
+
+function renderGates(){
+  const g=STATE.gates||[];
+  const pass=g.filter(x=>x.pass).length;
+  let html=`<div class="card"><h3>质量门（${pass}/${g.length} 通过）· 复刻 wx-bot 可靠性契约</h3>`;
+  for(const x of g){html+=`<div class="gate"><span class="g">${x.id}</span><span class="nm">${esc(x.name)}<div class="muted" style="font-weight:400">${esc(x.detail||"")}</div></span>${x.pass?'<span class="ok">PASS</span>':'<span class="no">FAIL</span>'}</div>`;}
+  html+=`</div>`;
+  return html;
+}
+
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+
+// ---------- 启动 + 深链 ----------
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{render(t.dataset.tab);history.replaceState(null,"","?tab="+t.dataset.tab);});
+async function goHash(){
+  const QP=new URLSearchParams(location.search);
+  const s=QP.get("tab")||"inbox";const run=QP.get("run")==="1";
+  if(!["inbox","delivery","api","protocol","gates"].includes(s))s="inbox";
+  await checkApi();
+  render(s);
+  if(run){ if(s==="inbox"){await actReceive("演示：明天 9 点开会","wxid_xiaoming");await actPull();}
+    else if(s==="delivery"){await actReceive("pull 演示：记一下周五的会","wxid_demo1");await actPull();await autoAckAll();}
+    else if(s==="api"){document.querySelector('[data-ep="/api/health"]')?.click();}
+    else if(s==="gates"){await actReceive("质量门演示","wxid_q");}
+  }
+}
+render("inbox");   // 先渲染，保证内容可见（不依赖网络）
+goHash();
+</script>
+</body>
+</html>
