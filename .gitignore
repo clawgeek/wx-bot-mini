@@ -1,0 +1,11 @@
+# 本地状态（运行时生成）
+/tmp/*.json
+*.tmp
+output/_state.json
+
+# Python
+__pycache__/
+*.pyc
+
+# node（上游 Bun 项目用，本 mini 版纯 Python，保留以防误装）
+node_modules/
