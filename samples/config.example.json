@@ -1,0 +1,14 @@
+{
+  "bindings": {
+    "xiaox": {
+      "mode": "pull",
+      "agent": {
+        "type": "webhook",
+        "url": "https://your-agent.example.com/wx-webhook",
+        "key": "env:WX_AGENT_KEY"
+      }
+    }
+  },
+  "chatlog_days": 0,
+  "alert": { "type": "none" }
+}
